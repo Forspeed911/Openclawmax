@@ -1,0 +1,22 @@
+# OpenClawMax — Caddy reverse proxy
+#
+# Если DOMAIN задан в .env — автоматический HTTPS (Let's Encrypt)
+# Если нет — localhost без SSL
+
+{$DOMAIN:localhost} {
+    reverse_proxy openclaw:3000
+
+    # Логи
+    log {
+        output file /data/access.log
+        format json
+    }
+
+    # Заголовки безопасности
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+}

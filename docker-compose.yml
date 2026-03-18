@@ -1,0 +1,60 @@
+# OpenClawMax — Docker Compose
+# Вариант: нативный GigaChat плагин + Max Channel
+#
+# Использование:
+#   cp .env.example .env
+#   # заполнить .env
+#   docker compose up -d
+
+services:
+  openclaw:
+    image: openclaw/openclaw:latest
+    container_name: openclawmax
+    restart: unless-stopped
+    ports:
+      - "${OPENCLAW_PORT:-3000}:3000"
+    environment:
+      # --- GigaChat (нативный плагин) ---
+      - GIGACHAT_CREDENTIALS=${GIGACHAT_CREDENTIALS}
+      - GIGACHAT_SCOPE=${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
+      # --- Max Messenger ---
+      - MAX_BOT_TOKEN=${MAX_BOT_TOKEN}
+      # --- Опционально: Telegram ---
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      # --- Webhook ---
+      - WEBHOOK_BASE_URL=${WEBHOOK_BASE_URL:-}
+      # --- Данные ---
+      - DATA_DIR=/data
+    volumes:
+      - openclaw-data:/data
+      - ./extensions/gigachat:/app/extensions/gigachat:ro
+      - ./extensions/max:/app/extensions/max:ro
+      - ./config/openclaw.config.json:/app/config.json:ro
+    networks:
+      - openclawmax
+
+  # --- Reverse proxy (SSL + routing) ---
+  caddy:
+    image: caddy:2-alpine
+    container_name: openclawmax-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - openclawmax
+    depends_on:
+      - openclaw
+
+volumes:
+  openclaw-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  openclawmax:
+    driver: bridge

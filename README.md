@@ -45,25 +45,62 @@ extensions/
     └── package.json
 ```
 
+## Quick Start
+
+### Вариант 1: Скрипт установки (рекомендуется)
+
+```bash
+git clone https://github.com/Forspeed911/Openclawmax.git
+cd Openclawmax
+bash scripts/install.sh
+```
+
+### Вариант 2: Вручную
+
+```bash
+git clone https://github.com/Forspeed911/Openclawmax.git
+cd Openclawmax
+cp .env.example .env
+# Заполнить .env: GIGACHAT_CREDENTIALS, MAX_BOT_TOKEN
+
+# Нативный GigaChat плагин:
+docker compose up -d
+
+# Или через gpt2giga proxy (быстрый старт):
+docker compose -f docker-compose.gpt2giga.yml up -d
+```
+
+### Два варианта GigaChat-интеграции
+
+| | Нативный плагин | gpt2giga proxy |
+|--|-----------------|----------------|
+| Compose файл | `docker-compose.yml` | `docker-compose.gpt2giga.yml` |
+| Latency | Минимальная (1 hop) | +1 hop через proxy |
+| Зависимости | TypeScript only | +Python-сервис |
+| Edge cases | Покрываем сами | Покрыты Сбером |
+| Для кого | Продакшн | Быстрый старт |
+
 ## Стек
 
 - **Плагины**: TypeScript, OpenClaw Plugin SDK, pnpm
 - **SaaS Backend**: NestJS, PostgreSQL, Redis
 - **SaaS Frontend**: React, Tailwind
 - **Деплой**: Docker, Docker Compose
+- **GigaChat alt**: [gpt2giga](https://github.com/ai-forever/gpt2giga) — официальный proxy от Сбера
 
 ## Этапы
 
-- **Phase 1** — Плагины (GigaChat + Max) → MVP
+- **Phase 1** — Плагины (GigaChat + Max) → MVP ← текущий этап
 - **Phase 2** — Web Installer (wizard + SSH-деплоер)
 - **Phase 3** — Hosted SaaS (multi-tenant + биллинг)
 
 ## Ссылки
 
-- [OpenClaw](https://github.com/openclaw/openclaw) — основной проект
+- [OpenClaw](https://github.com/openclaw/openclaw) — основной проект (310k+ stars)
 - [Max для разработчиков](https://dev.max.ru/) — API мессенджера Max
 - [GigaChat API](https://developers.sber.ru/docs/ru/gigachat/overview) — документация GigaChat
-- [gigachat-openclaw](https://github.com/SoapMaker101/gigachat-openclaw) — существующий proxy (reference)
+- [gpt2giga](https://github.com/ai-forever/gpt2giga) — OpenAI→GigaChat proxy от Сбера
+- [gigachat-openclaw](https://github.com/SoapMaker101/gigachat-openclaw) — community proxy (reference)
 
 ## Лицензия
 
