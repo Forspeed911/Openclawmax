@@ -110,9 +110,16 @@ api.registerProvider({
    - OpenAI-совместимый endpoint
    - Можно использовать как reference или fallback
 
-2. **gpt2giga** — Python proxy
-   - Переводит OpenAI запросы в GigaChat формат
-   - Используется в community skills (Хабр)
+2. **gpt2giga** (GitHub: ai-forever/gpt2giga) — **официальный proxy от Сбера**
+   - MIT лицензия, Python, PyPI: `pip install gpt2giga`
+   - Полная трансляция OpenAI API → GigaChat API (и обратно)
+   - Endpoints: `/v1/chat/completions`, `/v1/embeddings`, `/v1/messages` (Anthropic), `/responses`
+   - OAuth2 из коробки (авто-refresh)
+   - Streaming (SSE), vision, function calling
+   - Запуск: `gpt2giga` → `localhost:8090`
+   - FastAPI docs: `http://localhost:8090/docs`
+   - Протестирован с Aider, n8n, Cline/Roo Code
+   - **Ключевое:** поддерживает и OpenAI и Anthropic Messages API формат
 
 3. **LiteLLM** — универсальный прокси
    - `model=gigachat/<model>` prefix
@@ -120,11 +127,44 @@ api.registerProvider({
 
 ## Стратегия
 
-**Рекомендация:** нативный плагин (не proxy), потому что:
-- Нет лишнего hop (proxy → latency)
-- OAuth2 refresh встроен в OpenClaw lifecycle
-- Полный контроль над function calling ограничениями
-- Лучший UX (onboarding wizard в OpenClaw)
+**Гибридный подход — два пути:**
+
+### Путь A: Нативный плагин (основной)
+- Прямой вызов GigaChat API, OAuth2 через `prepareRuntimeAuth`
+- Минимальная latency (1 hop)
+- Полный контроль над capabilities и edge cases
+- **Для:** Hosted SaaS, продакшн
+
+### Путь B: gpt2giga proxy (альтернатива)
+- OpenClaw думает что говорит с OpenAI → gpt2giga транслирует в GigaChat
+- Конфигурация: `baseUrl: http://gpt2giga:8090/v1`, формат `openai-completions`
+- Все edge cases покрыты Сбером
+- +1 Python-сервис в Docker Compose
+- **Для:** quick start, web installer, fallback
+
+### Docker Compose (gpt2giga вариант)
+```yaml
+services:
+  gpt2giga:
+    image: python:3.11-slim
+    command: pip install gpt2giga && gpt2giga
+    environment:
+      - GIGACHAT_CREDENTIALS=${GIGACHAT_CREDENTIALS}
+      - GIGACHAT_MODEL=GigaChat-Max
+      - GIGACHAT_SCOPE=GIGACHAT_API_PERS
+    ports:
+      - "8090:8090"
+
+  openclaw:
+    image: openclaw/openclaw:latest
+    environment:
+      - OPENAI_API_BASE=http://gpt2giga:8090/v1
+      - OPENAI_API_KEY=dummy  # gpt2giga handles auth
+    depends_on:
+      - gpt2giga
+```
+
+В web installer пользователь выбирает: "Нативная интеграция" или "Через gpt2giga (рекомендуется для быстрого старта)".
 
 ## TODO
 - [ ] Зарегистрироваться на developers.sber.ru

@@ -77,6 +77,32 @@ extensions/gigachat/
 2. Function calling ограничен — нужен `capabilities` флаг
 3. Endpoint: `gigachat.devices.sberbank.ru/api/v1`
 
+**Два пути интеграции GigaChat:**
+
+| | Нативный плагин | gpt2giga proxy |
+|--|-----------------|----------------|
+| **Что** | Прямой вызов GigaChat API из OpenClaw | Python-proxy от Сбера (ai-forever/gpt2giga) |
+| **OAuth** | Наш auth.ts с auto-refresh | Встроен в proxy |
+| **Latency** | Минимальная (1 hop) | +1 hop (OpenClaw → proxy → GigaChat) |
+| **Зависимости** | Только TypeScript | Python-сервис в Docker |
+| **Совместимость** | OpenAI completions API | OpenAI + Anthropic Messages API |
+| **Edge cases** | Нужно покрывать самим | Покрыты Сбером (vision, streaming, embeddings) |
+| **Когда использовать** | Hosted SaaS, продакшн | Quick start, web installer, fallback |
+
+**Стратегия: гибрид.**
+- Нативный плагин — основной путь (минимальная latency, полный контроль)
+- gpt2giga — альтернатива в Docker Compose для быстрого старта и web installer
+- В SaaS-режиме: нативный плагин
+- В web installer: оба варианта на выбор пользователя
+
+**gpt2giga (ai-forever/gpt2giga):**
+- Официальный proxy от команды Сбера (MIT лицензия)
+- Поддерживает: `/v1/chat/completions`, `/v1/embeddings`, `/v1/messages` (Anthropic), `/responses`
+- OAuth, streaming (SSE), vision, function calling
+- PyPI: `pip install gpt2giga`, запуск: `gpt2giga` → `localhost:8090`
+- Docs: `http://localhost:8090/docs` (FastAPI)
+- Для OpenClaw: просто указать `baseUrl: http://gpt2giga:8090/v1` и формат `openai-completions`
+
 ### 3. SaaS-платформа
 
 #### Режим 1: Hosted SaaS
