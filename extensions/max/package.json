@@ -1,0 +1,10 @@
+{
+  "name": "@openclawmax/max-channel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OpenClaw channel plugin for Max messenger (VK) — national Russian messenger",
+  "type": "module",
+  "openclaw": {
+    "extensions": ["./index.ts"]
+  }
+}
