@@ -30,7 +30,7 @@ export default definePluginEntry({
       id: PROVIDER_ID,
       label: "GigaChat",
       docsPath: "/providers/gigachat",
-      envVars: ["GIGACHAT_CREDENTIALS"],
+      envVars: ["GIGACHAT_AUTH_KEY"],
 
       auth: [
         createProviderApiKeyAuthMethod({
@@ -38,9 +38,9 @@ export default definePluginEntry({
           methodId: "api-key",
           label: "GigaChat credentials",
           hint: "Base64(client_id:client_secret) from developers.sber.ru",
-          optionKey: "gigachatCredentials",
-          flagName: "--gigachat-credentials",
-          envVar: "GIGACHAT_CREDENTIALS",
+          optionKey: "gigachatAuthKey",
+          flagName: "--gigachat-auth-key",
+          envVar: "GIGACHAT_AUTH_KEY",
           promptMessage: "Enter GigaChat credentials (base64 of client_id:client_secret)",
           defaultModel: "gigachat/GigaChat-2-Max",
           expectedProviders: [PROVIDER_ID],

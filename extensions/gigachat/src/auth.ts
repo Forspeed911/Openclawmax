@@ -15,6 +15,7 @@ const OAUTH_URL = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth";
 /** Token refresh margin: refresh 60s before expiry */
 const REFRESH_MARGIN_MS = 60_000;
 
+
 export interface GigaChatToken {
   accessToken: string;
   expiresAt: number;
@@ -63,7 +64,9 @@ async function requestToken(
   credentials: string,
   scope: string,
 ): Promise<GigaChatToken> {
-  const response = await fetch(OAUTH_URL, {
+  // Sber GigaChat uses custom CA — need to bypass TLS verification
+  // In Node.js 18+, native fetch uses undici under the hood
+  const fetchOpts: RequestInit & { dispatcher?: unknown } = {
     method: "POST",
     headers: {
       Authorization: `Basic ${credentials}`,
@@ -71,7 +74,19 @@ async function requestToken(
       RqUID: crypto.randomUUID(),
     },
     body: `scope=${scope}`,
-  });
+  };
+
+  // Inject undici Agent for TLS bypass (Node.js native fetch)
+  try {
+    const { Agent } = require("undici");
+    fetchOpts.dispatcher = new Agent({
+      connect: { rejectUnauthorized: false },
+    });
+  } catch {
+    // If undici not available, rely on NODE_TLS_REJECT_UNAUTHORIZED=0
+  }
+
+  const response = await fetch(OAUTH_URL, fetchOpts as RequestInit);
 
   if (!response.ok) {
     const text = await response.text();

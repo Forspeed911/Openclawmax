@@ -134,21 +134,19 @@ export class MaxBotApi {
   ): Promise<T> {
     let url = `${this.baseUrl}${path}`;
 
-    // Append query parameters
+    // Append query parameters (token always goes as query param)
+    const params = new URLSearchParams();
+    params.append("access_token", this.token);
     if (opts?.query) {
-      const params = new URLSearchParams();
       for (const [key, val] of Object.entries(opts.query)) {
         if (val !== undefined && val !== null) {
           params.append(key, String(val));
         }
       }
-      const qs = params.toString();
-      if (qs) url += `?${qs}`;
     }
+    url += `?${params.toString()}`;
 
-    const headers: Record<string, string> = {
-      "access_token": this.token,
-    };
+    const headers: Record<string, string> = {};
 
     const init: RequestInit = { method, headers };
 
