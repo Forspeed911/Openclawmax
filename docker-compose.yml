@@ -17,9 +17,11 @@ services:
     restart: unless-stopped
     ports:
       - "${OPENCLAW_PORT:-3000}:18789"
-    command: ["node", "openclaw.mjs", "gateway", "--allow-unconfigured"]
+    command: >
+      sh -c "cp /app/config-source/openclaw.config.json /data/config.json &&
+             exec node openclaw.mjs gateway --allow-unconfigured"
     environment:
-      - OPENCLAW_CONFIG_PATH=/app/config.json
+      - OPENCLAW_CONFIG_PATH=/data/config.json
       # --- GigaChat (нативный плагин) ---
       - GIGACHAT_AUTH_KEY=${GIGACHAT_AUTH_KEY}
       - GIGACHAT_SCOPE=${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
@@ -36,7 +38,7 @@ services:
       - openclaw-data:/data
       - ./extensions/gigachat:/app/extensions/gigachat:ro
       - ./extensions/max:/app/extensions/max:ro
-      - ./config/openclaw.config.json:/app/config.json
+      - ./config:/app/config-source:ro
     networks:
       - openclawmax
 
