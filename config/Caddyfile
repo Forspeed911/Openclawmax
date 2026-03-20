@@ -4,7 +4,7 @@
 # Если нет — localhost без SSL
 
 {$DOMAIN:localhost} {
-    reverse_proxy openclaw:3000
+    reverse_proxy openclaw:18789
 
     # Логи
     log {
