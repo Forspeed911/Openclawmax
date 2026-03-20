@@ -1,5 +1,5 @@
 {
-  "name": "@openclawmax/gigachat-provider",
+  "name": "@openclaw/gigachat",
   "version": "0.1.0",
   "private": true,
   "description": "OpenClaw GigaChat (Sber) provider plugin — native OAuth2 integration",

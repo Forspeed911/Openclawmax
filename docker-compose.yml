@@ -36,8 +36,6 @@ services:
       - DATA_DIR=/data
     volumes:
       - openclaw-data:/data
-      - ./extensions/gigachat:/app/extensions/gigachat:ro
-      - ./extensions/max:/app/extensions/max:ro
       - ./config:/app/config-source:ro
     networks:
       - openclawmax

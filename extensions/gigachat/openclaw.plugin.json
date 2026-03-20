@@ -3,7 +3,7 @@
   "providers": ["gigachat"],
 
   "providerAuthEnvVars": {
-    "gigachat": ["GIGACHAT_CREDENTIALS", "GIGACHAT_CLIENT_ID", "GIGACHAT_CLIENT_SECRET"]
+    "gigachat": ["GIGACHAT_AUTH_KEY", "GIGACHAT_CREDENTIALS", "GIGACHAT_CLIENT_ID", "GIGACHAT_CLIENT_SECRET"]
   },
 
   "providerAuthChoices": [
