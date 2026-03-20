@@ -54,7 +54,7 @@ export const maxSetupWizard = {
     configuredLabel: "Max Bot connected",
     unconfiguredLabel: "Max Bot not configured",
     resolveConfigured: (ctx: { config: Record<string, unknown> }) => {
-      return !!ctx.config?.["maxBotToken"];
+      return !!(ctx.config?.["maxBotToken"] || process.env.MAX_BOT_TOKEN);
     },
   },
   credentials: [
@@ -111,7 +111,8 @@ export function buildMaxChannelPlugin() {
 
     config: {
       resolveAccounts: (ctx: { config: Record<string, unknown> }) => {
-        const token = ctx.config?.["maxBotToken"] as string | undefined;
+        const token = (ctx.config?.["maxBotToken"] as string | undefined)
+          || process.env.MAX_BOT_TOKEN;
         if (!token) return [];
         return [
           {
