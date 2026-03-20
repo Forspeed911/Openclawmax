@@ -19,7 +19,7 @@ services:
       - "${OPENCLAW_PORT:-3000}:18789"
     command: >
       sh -c "cp /app/config-source/openclaw.config.json /tmp/config.json &&
-             exec node openclaw.mjs gateway --allow-unconfigured"
+             exec node openclaw.mjs gateway --allow-unconfigured --bind lan"
     environment:
       - OPENCLAW_CONFIG_PATH=/tmp/config.json
       # --- GigaChat (нативный плагин) ---
