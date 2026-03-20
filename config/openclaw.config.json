@@ -47,5 +47,11 @@
     "telegram": {
       "enabled": true
     }
+  },
+
+  "gateway": {
+    "controlUi": {
+      "dangerouslyAllowHostHeaderOriginFallback": true
+    }
   }
 }
