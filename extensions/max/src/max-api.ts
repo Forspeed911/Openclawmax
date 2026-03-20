@@ -36,9 +36,10 @@ export class MaxBotApi {
 
   /** Send a message to a chat. */
   async sendMessage(params: MaxSendMessageParams): Promise<MaxMessage> {
+    const { chat_id, ...body } = params;
     return this.request<MaxMessage>("POST", "/messages", {
-      body: params,
-      query: { chat_id: params.chat_id },
+      body,
+      query: { chat_id },
     });
   }
 
