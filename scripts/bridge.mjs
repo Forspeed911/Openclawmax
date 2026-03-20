@@ -21,7 +21,7 @@ const GIGACHAT_AUTH = process.env.GIGACHAT_AUTH_KEY;
 const GIGACHAT_MODEL = process.env.GIGACHAT_MODEL || "GigaChat-2-Max";
 const GIGACHAT_SCOPE = process.env.GIGACHAT_SCOPE || "GIGACHAT_API_PERS";
 
-const MAX_API = "https://botapi.max.ru";
+const MAX_API = "https://platform-api.max.ru";
 const GIGACHAT_OAUTH = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth";
 const GIGACHAT_API = "https://gigachat.devices.sberbank.ru/api/v1";
 
@@ -126,11 +126,21 @@ async function askGigaChat(chatId, userText) {
 
 // ─── Max API ───
 
-async function maxApi(method, path, body) {
+async function maxApi(method, path, body, queryParams) {
   const url = new URL(path, MAX_API);
-  url.searchParams.set("access_token", MAX_TOKEN);
+  // Query params (chat_id etc.)
+  if (queryParams) {
+    for (const [k, v] of Object.entries(queryParams)) {
+      if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
+    }
+  }
 
-  const opts = { method, headers: {} };
+  const opts = {
+    method,
+    headers: {
+      Authorization: MAX_TOKEN,
+    },
+  };
   if (body) {
     opts.headers["Content-Type"] = "application/json";
     opts.body = JSON.stringify(body);
@@ -148,7 +158,7 @@ async function maxApi(method, path, body) {
 
 async function sendTyping(chatId) {
   try {
-    await maxApi("POST", "/chats/actions", { chat_id: chatId, action: "typing_on" });
+    await maxApi("POST", "/chats/actions", { action: "typing_on" }, { chat_id: chatId });
   } catch { /* non-critical */ }
 }
 
@@ -170,14 +180,13 @@ async function sendMessage(chatId, text, replyTo) {
 
   for (let i = 0; i < chunks.length; i++) {
     const body = {
-      chat_id: chatId,
       text: chunks[i],
       format: "markdown",
     };
     if (i === 0 && replyTo) {
       body.link = { type: "reply", mid: replyTo };
     }
-    await maxApi("POST", "/messages", body);
+    await maxApi("POST", "/messages", body, { chat_id: chatId });
   }
 }
 
@@ -234,11 +243,12 @@ async function poll() {
   while (true) {
     try {
       const url = new URL("/updates", MAX_API);
-      url.searchParams.set("access_token", MAX_TOKEN);
       url.searchParams.set("timeout", "25");
       if (marker) url.searchParams.set("marker", String(marker));
 
-      const res = await fetch(url);
+      const res = await fetch(url, {
+        headers: { Authorization: MAX_TOKEN },
+      });
       if (!res.ok) throw new Error(`Polling error: ${res.status}`);
       const data = await res.json();
 
