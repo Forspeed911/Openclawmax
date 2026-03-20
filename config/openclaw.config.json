@@ -3,7 +3,12 @@
 
   "agents": {
     "defaults": {
-      "model": "gigachat/GigaChat-2-Max"
+      "model": "gigachat/GigaChat-2-Max",
+      "contextTokens": 32000,
+      "thinkingDefault": "off",
+      "compaction": {
+        "mode": "default"
+      }
     }
   },
 
@@ -22,7 +27,15 @@
             "input": ["text", "image"],
             "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
             "contextWindow": 128000,
-            "maxTokens": 8192
+            "maxTokens": 8192,
+            "compat": {
+              "supportsTools": true,
+              "supportsStrictMode": false,
+              "supportsDeveloperRole": false,
+              "supportsReasoningEffort": false,
+              "maxTokensField": "max_tokens",
+              "parallelToolCalls": false
+            }
           },
           {
             "id": "GigaChat-2-Pro",
@@ -31,7 +44,15 @@
             "input": ["text", "image"],
             "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
             "contextWindow": 128000,
-            "maxTokens": 8192
+            "maxTokens": 8192,
+            "compat": {
+              "supportsTools": true,
+              "supportsStrictMode": false,
+              "supportsDeveloperRole": false,
+              "supportsReasoningEffort": false,
+              "maxTokensField": "max_tokens",
+              "parallelToolCalls": false
+            }
           },
           {
             "id": "GigaChat-2",
@@ -40,7 +61,15 @@
             "input": ["text"],
             "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
             "contextWindow": 128000,
-            "maxTokens": 8192
+            "maxTokens": 8192,
+            "compat": {
+              "supportsTools": true,
+              "supportsStrictMode": false,
+              "supportsDeveloperRole": false,
+              "supportsReasoningEffort": false,
+              "maxTokensField": "max_tokens",
+              "parallelToolCalls": false
+            }
           }
         ]
       }
