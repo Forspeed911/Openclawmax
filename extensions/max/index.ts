@@ -14,7 +14,7 @@
  */
 
 import { defineChannelPluginEntry } from "openclaw/plugin-sdk/core";
-import { buildMaxChannelPlugin } from "./src/channel.js";
+import { buildMaxChannelPlugin } from "./src/channel.ts";
 
 const maxPlugin = buildMaxChannelPlugin();
 

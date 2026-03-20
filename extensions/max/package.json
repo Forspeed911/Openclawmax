@@ -5,6 +5,16 @@
   "description": "OpenClaw channel plugin for Max messenger (VK) — national Russian messenger",
   "type": "module",
   "openclaw": {
-    "extensions": ["./index.ts"]
+    "extensions": ["./index.ts"],
+    "channel": {
+      "id": "max",
+      "label": "Max",
+      "selectionLabel": "Max Messenger (VK)",
+      "detailLabel": "Max Bot",
+      "docsPath": "/channels/max",
+      "docsLabel": "max",
+      "blurb": "Russian national messenger by VK — register a bot at dev.max.ru and connect.",
+      "systemImage": "message"
+    }
   }
 }

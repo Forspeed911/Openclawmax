@@ -13,8 +13,8 @@ import type {
   MaxMessage,
   MaxSubscription,
   MaxUpdate,
-} from "./types.js";
-import { MAX_API_BASE } from "./types.js";
+} from "./types.ts";
+import { MAX_API_BASE } from "./types.ts";
 
 export class MaxBotApi {
   private readonly baseUrl: string;

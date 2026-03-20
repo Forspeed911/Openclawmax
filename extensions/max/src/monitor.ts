@@ -5,8 +5,8 @@
  * Follows the same pattern as Telegram's monitorTelegramProvider.
  */
 
-import { MaxBotApi } from "./max-api.js";
-import { normalizeInbound, type NormalizedInboundMessage } from "./normalize.js";
+import { MaxBotApi } from "./max-api.ts";
+import { normalizeInbound, type NormalizedInboundMessage } from "./normalize.ts";
 
 export interface MonitorMaxOpts {
   token: string;

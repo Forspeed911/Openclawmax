@@ -1,5 +1,5 @@
 {
-  "id": "max-channel",
+  "id": "max",
   "channels": ["max"],
   "configSchema": {
     "type": "object",

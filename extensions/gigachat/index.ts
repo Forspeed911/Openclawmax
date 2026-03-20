@@ -14,8 +14,8 @@
 
 import { definePluginEntry } from "openclaw/plugin-sdk/core";
 import { createProviderApiKeyAuthMethod } from "openclaw/plugin-sdk/provider-auth";
-import { GIGACHAT_MODELS } from "./src/models.js";
-import { getAccessToken, invalidateToken } from "./src/auth.js";
+import { GIGACHAT_MODELS } from "./src/models.ts";
+import { getAccessToken, invalidateToken } from "./src/auth.ts";
 
 const PROVIDER_ID = "gigachat";
 const BASE_URL = "https://gigachat.devices.sberbank.ru/api/v1";

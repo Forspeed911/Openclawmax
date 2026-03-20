@@ -5,7 +5,7 @@
  * and outgoing OpenClaw payloads to Max API format.
  */
 
-import type { MaxMessage, MaxUpdate, MaxAttachment } from "./types.js";
+import type { MaxMessage, MaxUpdate, MaxAttachment } from "./types.ts";
 
 /** Minimal OpenClaw-compatible inbound message shape. */
 export interface NormalizedInboundMessage {

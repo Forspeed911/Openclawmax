@@ -4,9 +4,9 @@
  * Handles text, media, inline keyboards, and typing indicators.
  */
 
-import { MaxBotApi } from "./max-api.js";
-import { formatTextForMax, chunkText } from "./normalize.js";
-import type { MaxInlineKeyboard, MaxButton, MaxSendMessageParams } from "./types.js";
+import { MaxBotApi } from "./max-api.ts";
+import { formatTextForMax, chunkText } from "./normalize.ts";
+import type { MaxInlineKeyboard, MaxButton, MaxSendMessageParams } from "./types.ts";
 
 export interface SendTextOpts {
   token: string;

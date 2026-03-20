@@ -5,10 +5,10 @@
  * Implements: config, outbound, gateway, setup wizard.
  */
 
-import { MaxBotApi } from "./max-api.js";
-import { monitorMaxChannel } from "./monitor.js";
-import { sendTextToMax, sendTypingToMax, chunkText } from "./outbound-adapter.js";
-import { formatTextForMax } from "./normalize.js";
+import { MaxBotApi } from "./max-api.ts";
+import { monitorMaxChannel } from "./monitor.ts";
+import { sendTextToMax, sendTypingToMax, chunkText } from "./outbound-adapter.ts";
+import { formatTextForMax } from "./normalize.ts";
 
 /**
  * Channel metadata.
