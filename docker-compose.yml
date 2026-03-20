@@ -8,15 +8,20 @@
 
 services:
   openclaw:
-    image: openclaw/openclaw:latest
+    build:
+      context: ./openclaw-src
+      args:
+        OPENCLAW_EXTENSIONS: "gigachat max"
+    image: openclawmax:latest
     container_name: openclawmax
     restart: unless-stopped
     ports:
       - "${OPENCLAW_PORT:-3000}:3000"
     environment:
       # --- GigaChat (нативный плагин) ---
-      - GIGACHAT_CREDENTIALS=${GIGACHAT_CREDENTIALS}
+      - GIGACHAT_AUTH_KEY=${GIGACHAT_AUTH_KEY}
       - GIGACHAT_SCOPE=${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
       # --- Max Messenger ---
       - MAX_BOT_TOKEN=${MAX_BOT_TOKEN}
       # --- Опционально: Telegram ---

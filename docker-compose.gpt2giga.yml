@@ -19,7 +19,7 @@ services:
       --gigachat.model ${GIGACHAT_MODEL:-GigaChat-Max}
       --proxy.pass-model true"
     environment:
-      - GIGACHAT_CREDENTIALS=${GIGACHAT_CREDENTIALS}
+      - GIGACHAT_CREDENTIALS=${GIGACHAT_AUTH_KEY}
       - GIGACHAT_SCOPE=${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
     ports:
       - "8090:8090"
@@ -34,7 +34,11 @@ services:
 
   # --- OpenClaw (видит gpt2giga как OpenAI API) ---
   openclaw:
-    image: openclaw/openclaw:latest
+    build:
+      context: ./openclaw-src
+      args:
+        OPENCLAW_EXTENSIONS: "max"
+    image: openclawmax:latest
     container_name: openclawmax
     restart: unless-stopped
     ports:
@@ -43,6 +47,7 @@ services:
       # GigaChat через gpt2giga (OpenClaw думает что это OpenAI)
       - OPENAI_API_BASE=http://gpt2giga:8090/v1
       - OPENAI_API_KEY=gpt2giga-local
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
       # --- Max Messenger ---
       - MAX_BOT_TOKEN=${MAX_BOT_TOKEN}
       # --- Опционально: Telegram ---
