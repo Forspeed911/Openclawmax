@@ -2,7 +2,7 @@
  * GigaChat Provider Plugin for OpenClaw.
  *
  * Native integration with Sber's GigaChat LLM:
- * - OAuth2 authentication (auto-refresh)
+ * - OAuth2 authentication (auto-refresh, cached)
  * - OpenAI-compatible chat completions API
  * - Models: GigaChat-2 (Lite), GigaChat-2-Pro, GigaChat-2-Max + legacy 1.x
  * - Function calling (single call per request — GigaChat limitation)
@@ -10,19 +10,30 @@
  * - Streaming (SSE)
  *
  * Registration: https://developers.sber.ru
- *
- * NOTE: We inline the plugin entry instead of importing definePluginEntry
- * from "openclaw/plugin-sdk/core" because jiti's alias resolution doesn't
- * work for bind-mounted extensions loaded at runtime.
  */
 
 import { GIGACHAT_MODELS } from "./src/models.ts";
-import { getAccessToken, invalidateToken } from "./src/auth.ts";
+import { getAccessToken } from "./src/auth.ts";
 
 const PROVIDER_ID = "gigachat";
 const BASE_URL = "https://gigachat.devices.sberbank.ru/api/v1";
 
 const emptyConfigSchema = { type: "object" as const, properties: {} };
+
+/** Convert model defs to ModelDefinitionConfig (no extra fields) */
+function toModelDefs() {
+  return GIGACHAT_MODELS.map((m) => ({
+    id: m.id,
+    name: m.name,
+    reasoning: m.reasoning,
+    input: [...m.input].filter(
+      (i): i is "text" | "image" => i === "text" || i === "image",
+    ),
+    cost: m.cost,
+    contextWindow: m.contextWindow,
+    maxTokens: m.maxTokens,
+  }));
+}
 
 export default {
   id: PROVIDER_ID,
@@ -39,97 +50,94 @@ export default {
 
       auth: [
         {
-          id: "api-key",
-          methodId: "api-key",
-          providerId: PROVIDER_ID,
-          type: "api_key",
-          label: "GigaChat credentials",
+          id: "credentials",
+          label: "GigaChat Credentials",
           hint: "Base64(client_id:client_secret) from developers.sber.ru",
-          envVar: "GIGACHAT_AUTH_KEY",
-          promptMessage: "Enter GigaChat credentials (base64 of client_id:client_secret)",
-          defaultModel: "gigachat/GigaChat-2-Max",
-          expectedProviders: [PROVIDER_ID],
-          resolveApiKey: (ctx: any) => {
-            const key =
-              ctx.options?.gigachatAuthKey ||
-              process.env.GIGACHAT_AUTH_KEY ||
-              null;
-            if (!key) return null;
-            return { apiKey: key, provider: PROVIDER_ID };
-          },
-          wizard: {
-            choiceId: "gigachat-credentials",
-            choiceLabel: "GigaChat credentials",
-            groupId: "gigachat",
-            groupLabel: "GigaChat (Sber)",
-            groupHint: "Российская LLM от Сбера — developers.sber.ru",
+          kind: "custom",
+          run: async (ctx: any) => {
+            const credentials = await ctx.prompter.text({
+              message:
+                "GigaChat credentials (base64 of client_id:client_secret)",
+              validate: (value: string) =>
+                value.trim() ? undefined : "Credentials required",
+            });
+
+            return {
+              profiles: [
+                {
+                  profileId: "gigachat:default",
+                  credential: {
+                    type: "api_key",
+                    provider: PROVIDER_ID,
+                    key: credentials.trim(),
+                  },
+                },
+              ],
+              configPatch: {
+                models: {
+                  providers: {
+                    [PROVIDER_ID]: {
+                      baseUrl: BASE_URL,
+                      api: "openai-completions",
+                      apiKey: credentials.trim(),
+                      models: toModelDefs(),
+                    },
+                  },
+                },
+              },
+              defaultModel: `${PROVIDER_ID}/GigaChat-2-Max`,
+            };
           },
         },
       ],
 
-      // Static model catalog
-      catalog: {
-        order: "simple",
+      discovery: {
+        order: "simple" as const,
         run: async (ctx: any) => {
-          const apiKey = ctx.resolveProviderApiKey?.(PROVIDER_ID);
-          if (!apiKey?.apiKey) return null;
+          // Resolve credentials: stored profile → env var
+          const resolved = ctx.resolveProviderApiKey?.(PROVIDER_ID);
+          const credentials =
+            resolved?.apiKey ||
+            resolved?.discoveryApiKey ||
+            ctx.env?.GIGACHAT_AUTH_KEY ||
+            process.env.GIGACHAT_AUTH_KEY;
 
-          return {
-            provider: {
-              baseUrl: BASE_URL,
-              api: "openai-completions" as const,
-              apiKey: apiKey.apiKey,
-              models: [...GIGACHAT_MODELS],
-            },
-          };
+          if (!credentials) return null;
+
+          const scope =
+            ctx.env?.GIGACHAT_SCOPE ||
+            process.env.GIGACHAT_SCOPE ||
+            "GIGACHAT_API_PERS";
+
+          try {
+            // Exchange credentials for OAuth2 access token (cached, auto-refresh)
+            const accessToken = await getAccessToken(credentials, scope);
+
+            return {
+              provider: {
+                baseUrl: BASE_URL,
+                api: "openai-completions" as const,
+                apiKey: accessToken,
+                models: toModelDefs(),
+              },
+            };
+          } catch {
+            // OAuth failed — provider unavailable, don't crash
+            return null;
+          }
         },
       },
 
-      /**
-       * Runtime auth: convert credentials → OAuth2 access_token.
-       * Called before each API request.
-       */
-      prepareRuntimeAuth: async (ctx: any) => {
-        const credentials = ctx.apiKey || ctx.resolvedModel?.apiKey;
-        if (!credentials) return null;
-
-        const scope = ctx.pluginConfig?.scope || "GIGACHAT_API_PERS";
-
-        try {
-          const accessToken = await getAccessToken(credentials, scope);
-          return {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          };
-        } catch (err) {
-          invalidateToken();
-          throw err;
-        }
-      },
-
-      capabilities: {
-        providerFamily: "openai",
-        maxParallelToolCalls: 1,
-        anthropicToolSchemaMode: "openai-functions",
-      },
-
-      resolveDynamicModel: (ctx: any) => {
-        if (!ctx.modelId.startsWith("gigachat/")) return null;
-
-        const modelName = ctx.modelId.replace("gigachat/", "");
-        const known = GIGACHAT_MODELS.find((m: any) => m.id === modelName);
-
-        return {
-          id: modelName,
-          name: known?.name || modelName,
-          api: "openai-completions" as const,
-          provider: PROVIDER_ID,
-          baseUrl: BASE_URL,
-          contextWindow: known?.contextWindow || 8192,
-          maxTokens: known?.maxTokens || 4096,
-          cost: known?.cost || { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-        };
+      wizard: {
+        onboarding: {
+          choiceId: "gigachat-credentials",
+          choiceLabel: "GigaChat (Sber)",
+          choiceHint: "Российская LLM — developers.sber.ru",
+          groupId: "gigachat",
+          groupLabel: "GigaChat (Sber)",
+          groupHint: "Российская LLM от Сбера",
+          methodId: "credentials",
+        },
       },
     });
   },
