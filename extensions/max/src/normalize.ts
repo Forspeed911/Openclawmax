@@ -111,12 +111,26 @@ function normalizeAttachment(att: MaxAttachment): NormalizedAttachment | null {
 
 /**
  * Convert markdown text to Max-compatible format.
- * Max supports a subset of markdown.
+ *
+ * OpenClaw outputs standard markdown (**bold**, __italic__).
+ * Max uses Telegram-style markdown (*bold*, _italic_, `code`, ```pre```).
  */
 export function formatTextForMax(text: string): string {
-  // Max supports basic markdown: *bold*, _italic_, `code`, ```pre```
-  // OpenClaw outputs markdown-compatible text, so minimal conversion needed
-  return text;
+  let result = text;
+
+  // **bold** → *bold* (Max uses single asterisk for bold)
+  result = result.replace(/\*\*(.+?)\*\*/g, "*$1*");
+
+  // __italic__ → _italic_ (Max uses single underscore)
+  result = result.replace(/__(.+?)__/g, "_$1_");
+
+  // [text](url) → text (url) — Max doesn't support markdown links
+  result = result.replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1 ($2)");
+
+  // ### headers → *header* (bold, no header support in Max)
+  result = result.replace(/^#{1,6}\s+(.+)$/gm, "*$1*");
+
+  return result;
 }
 
 /**
