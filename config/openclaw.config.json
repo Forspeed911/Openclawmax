@@ -56,8 +56,10 @@
     "./extensions/max"
   ],
 
-  "agent": {
-    "language": "ru",
-    "defaultGreeting": "Привет! Я ваш AI-ассистент на базе GigaChat. Чем могу помочь?"
+  "agents": {
+    "defaults": {
+      "language": "ru",
+      "defaultGreeting": "Привет! Я ваш AI-ассистент на базе GigaChat. Чем могу помочь?"
+    }
   }
 }
