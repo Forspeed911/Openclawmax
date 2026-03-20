@@ -110,16 +110,39 @@ export function buildMaxChannelPlugin() {
     },
 
     config: {
-      resolveAccounts: (ctx: { config: Record<string, unknown> }) => {
-        const token = (ctx.config?.["maxBotToken"] as string | undefined)
-          || process.env.MAX_BOT_TOKEN;
-        if (!token) return [];
-        return [
-          {
-            accountId: "default",
-            token,
-          },
-        ];
+      /**
+       * List available account IDs.
+       * For Max we support a single "default" account.
+       */
+      listAccountIds: (cfg: any): string[] => {
+        const token =
+          cfg?.channels?.max?.botToken ||
+          process.env.MAX_BOT_TOKEN;
+        return token ? ["default"] : [];
+      },
+
+      /**
+       * Resolve account details by ID.
+       */
+      resolveAccount: (cfg: any, accountId?: string | null) => {
+        const token =
+          cfg?.channels?.max?.botToken ||
+          process.env.MAX_BOT_TOKEN ||
+          "";
+        return {
+          accountId: accountId || "default",
+          token,
+          enabled: true,
+          name: "Max Bot",
+          config: {},
+        };
+      },
+
+      /**
+       * Check if account has valid credentials.
+       */
+      isConfigured: (account: any, _cfg: any): boolean => {
+        return !!account.token?.trim();
       },
     },
 
@@ -150,17 +173,88 @@ export function buildMaxChannelPlugin() {
     },
 
     gateway: {
-      startAccount: async (ctx: {
-        account: { token: string };
-        onMessage: (msg: unknown) => Promise<void>;
-        onError?: (err: Error) => void;
-        signal?: AbortSignal;
-      }) => {
+      /**
+       * Start long-polling for incoming Max messages.
+       *
+       * Uses channelRuntime to dispatch messages through
+       * OpenClaw's AI pipeline (same pattern as Synology Chat plugin).
+       */
+      startAccount: async (ctx: any) => {
+        const token = ctx.account.token;
+        const accountId = ctx.accountId || "default";
+        const channelRuntime = ctx.channelRuntime;
+
+        if (!channelRuntime) {
+          ctx.log?.error?.(
+            `[max] [${accountId}] channelRuntime not available — cannot dispatch messages`
+          );
+          return;
+        }
+
         return monitorMaxChannel({
-          token: ctx.account.token,
-          onMessage: ctx.onMessage as any,
-          onError: ctx.onError,
-          signal: ctx.signal,
+          token,
+          signal: ctx.abortSignal,
+
+          onConnected: () => {
+            ctx.log?.info?.(`[max] [${accountId}] channel connected`);
+          },
+
+          onError: (err: Error) => {
+            ctx.log?.error?.(`[max] [${accountId}] error: ${err.message}`);
+          },
+
+          onMessage: async (msg) => {
+            // Skip empty messages
+            if (!msg.text && !msg.attachments?.length) return;
+
+            // Build MsgContext for OpenClaw dispatch
+            const fromKey = `max:${msg.senderId}`;
+            const msgCtx = channelRuntime.reply.finalizeInboundContext({
+              Body: msg.text,
+              RawBody: msg.text,
+              CommandBody: msg.text,
+              From: fromKey,
+              To: fromKey,
+              SessionKey: `max:${msg.chatId}`,
+              AccountId: accountId,
+              Provider: "max",
+              Surface: "max",
+              OriginatingChannel: "max",
+              OriginatingTo: fromKey,
+              ChatType: "direct",
+              SenderName: msg.senderName,
+              SenderId: msg.senderId,
+              ConversationLabel: msg.senderName || msg.senderId,
+              MessageSid: msg.externalId,
+              ReplyToId: msg.replyToId,
+              Timestamp: msg.timestamp || Date.now(),
+              CommandAuthorized: false,
+            });
+
+            // Dispatch through AI pipeline
+            await channelRuntime.reply.dispatchReplyWithBufferedBlockDispatcher({
+              ctx: msgCtx,
+              cfg: ctx.cfg,
+              dispatcherOptions: {
+                deliver: async (payload: any) => {
+                  const text = payload?.text ?? payload?.body ?? "";
+                  if (!text) return;
+                  await sendTextToMax({
+                    token,
+                    chatId: Number(msg.chatId),
+                    text,
+                  });
+                },
+                typingCallbacks: {
+                  start: async () => {
+                    try {
+                      await sendTypingToMax(token, Number(msg.chatId));
+                    } catch { /* ignore typing errors */ }
+                  },
+                },
+              },
+            });
+          },
         });
       },
     },
