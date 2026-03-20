@@ -17,8 +17,9 @@ services:
     restart: unless-stopped
     ports:
       - "${OPENCLAW_PORT:-3000}:18789"
-    command: ["node", "openclaw.mjs", "gateway", "--allow-unconfigured", "--config", "/app/config.json"]
+    command: ["node", "openclaw.mjs", "gateway", "--allow-unconfigured"]
     environment:
+      - OPENCLAW_CONFIG_PATH=/app/config.json
       # --- GigaChat (нативный плагин) ---
       - GIGACHAT_AUTH_KEY=${GIGACHAT_AUTH_KEY}
       - GIGACHAT_SCOPE=${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}

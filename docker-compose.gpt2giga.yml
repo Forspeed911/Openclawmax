@@ -43,8 +43,9 @@ services:
     restart: unless-stopped
     ports:
       - "${OPENCLAW_PORT:-3000}:18789"
-    command: ["node", "openclaw.mjs", "gateway", "--allow-unconfigured", "--config", "/app/config.json"]
+    command: ["node", "openclaw.mjs", "gateway", "--allow-unconfigured"]
     environment:
+      - OPENCLAW_CONFIG_PATH=/app/config.json
       # GigaChat через gpt2giga (OpenClaw думает что это OpenAI)
       - OPENAI_API_BASE=http://gpt2giga:8090/v1
       - OPENAI_API_KEY=gpt2giga-local
