@@ -3,7 +3,7 @@
   "_comment": "OpenClawMax — конфигурация с нативным GigaChat плагином",
 
   "models": {
-    "default": "gigachat/GigaChat-Max",
+    "default": "gigachat/GigaChat-2-Max",
     "providers": {
       "gigachat": {
         "baseUrl": "https://gigachat.devices.sberbank.ru/api/v1",
@@ -11,40 +11,31 @@
         "auth": "oauth",
         "models": [
           {
-            "id": "GigaChat",
-            "name": "GigaChat",
+            "id": "GigaChat-2",
+            "name": "GigaChat 2 Lite",
             "reasoning": false,
             "input": ["text"],
             "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 8192,
-            "maxTokens": 4096
-          },
-          {
-            "id": "GigaChat-Plus",
-            "name": "GigaChat Plus",
-            "reasoning": false,
-            "input": ["text"],
-            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 32768,
+            "contextWindow": 128000,
             "maxTokens": 8192
           },
           {
-            "id": "GigaChat-Pro",
-            "name": "GigaChat Pro",
+            "id": "GigaChat-2-Pro",
+            "name": "GigaChat 2 Pro",
             "reasoning": false,
             "input": ["text", "image"],
             "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 32768,
+            "contextWindow": 128000,
             "maxTokens": 8192
           },
           {
-            "id": "GigaChat-Max",
-            "name": "GigaChat Max",
+            "id": "GigaChat-2-Max",
+            "name": "GigaChat 2 Max",
             "reasoning": false,
-            "input": ["text", "image"],
+            "input": ["text", "image", "audio"],
             "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 32768,
-            "maxTokens": 16384
+            "contextWindow": 128000,
+            "maxTokens": 8192
           }
         ]
       }

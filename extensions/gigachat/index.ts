@@ -4,7 +4,7 @@
  * Native integration with Sber's GigaChat LLM:
  * - OAuth2 authentication (auto-refresh)
  * - OpenAI-compatible chat completions API
- * - Models: GigaChat, GigaChat-Plus, GigaChat-Pro, GigaChat-Max
+ * - Models: GigaChat-2 (Lite), GigaChat-2-Pro, GigaChat-2-Max + legacy 1.x
  * - Function calling (single call per request — GigaChat limitation)
  * - Vision support (GigaChat-Pro, GigaChat-Max)
  * - Streaming (SSE)
@@ -42,7 +42,7 @@ export default definePluginEntry({
           flagName: "--gigachat-credentials",
           envVar: "GIGACHAT_CREDENTIALS",
           promptMessage: "Enter GigaChat credentials (base64 of client_id:client_secret)",
-          defaultModel: "gigachat/GigaChat-Max",
+          defaultModel: "gigachat/GigaChat-2-Max",
           expectedProviders: [PROVIDER_ID],
           wizard: {
             choiceId: "gigachat-credentials",
