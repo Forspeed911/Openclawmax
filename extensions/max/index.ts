@@ -11,25 +11,32 @@
  *
  * Max — национальный российский мессенджер от VK (70M+ пользователей).
  * API: https://dev.max.ru/docs-api
+ *
+ * NOTE: We inline the plugin entry instead of importing defineChannelPluginEntry
+ * from "openclaw/plugin-sdk/core" because jiti's alias resolution doesn't
+ * work for bind-mounted extensions loaded at runtime.
  */
 
-console.log("[max-plugin] index.ts loading...");
-
-import { defineChannelPluginEntry } from "openclaw/plugin-sdk/core";
 import { buildMaxChannelPlugin } from "./src/channel.ts";
 
-console.log("[max-plugin] buildMaxChannelPlugin...");
 const maxPlugin = buildMaxChannelPlugin();
-console.log("[max-plugin] plugin built, id:", maxPlugin.id, "config keys:", Object.keys(maxPlugin.config));
-console.log("[max-plugin] gateway.startAccount?", typeof maxPlugin.gateway?.startAccount);
 
-const entry = defineChannelPluginEntry({
+const emptyConfigSchema = { type: "object" as const, properties: {} };
+
+/**
+ * Plugin entry — equivalent to defineChannelPluginEntry({
+ *   id: "max", name: "Max Messenger", plugin: maxPlugin
+ * })
+ *
+ * The register() function mirrors what defineChannelPluginEntry generates:
+ * it calls api.registerChannel({ plugin }) to register the channel.
+ */
+export default {
   id: "max",
   name: "Max Messenger",
   description: "Мессенджер Max от VK — национальный российский мессенджер (70M+ пользователей)",
-  plugin: maxPlugin,
-});
-
-console.log("[max-plugin] entry created, id:", entry.id, "register?", typeof entry.register);
-
-export default entry;
+  configSchema: emptyConfigSchema,
+  register(api: any) {
+    api.registerChannel({ plugin: maxPlugin });
+  },
+};
