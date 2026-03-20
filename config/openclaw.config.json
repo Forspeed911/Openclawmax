@@ -16,6 +16,14 @@
     }
   },
 
+  "plugins": {
+    "entries": {
+      "gigachat": {
+        "enabled": true
+      }
+    }
+  },
+
   "gateway": {
     "controlUi": {
       "dangerouslyAllowHostHeaderOriginFallback": true
