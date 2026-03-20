@@ -1,9 +1,7 @@
 {
   "$schema": "https://openclaw.ai/config-schema.json",
-  "_comment": "OpenClawMax — конфигурация с нативным GigaChat плагином",
 
   "models": {
-    "default": "gigachat/GigaChat-2-Max",
     "providers": {
       "gigachat": {
         "baseUrl": "https://gigachat.devices.sberbank.ru/api/v1",
@@ -32,7 +30,7 @@
             "id": "GigaChat-2-Max",
             "name": "GigaChat 2 Max",
             "reasoning": false,
-            "input": ["text", "image", "audio"],
+            "input": ["text", "image"],
             "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
             "contextWindow": 128000,
             "maxTokens": 8192
@@ -48,18 +46,6 @@
     },
     "telegram": {
       "enabled": true
-    }
-  },
-
-  "extensions": [
-    "./extensions/gigachat",
-    "./extensions/max"
-  ],
-
-  "agents": {
-    "defaults": {
-      "language": "ru",
-      "defaultGreeting": "Привет! Я ваш AI-ассистент на базе GigaChat. Чем могу помочь?"
     }
   }
 }
