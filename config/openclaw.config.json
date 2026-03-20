@@ -33,8 +33,7 @@
               "supportsStrictMode": false,
               "supportsDeveloperRole": false,
               "supportsReasoningEffort": false,
-              "maxTokensField": "max_tokens",
-              "parallelToolCalls": false
+              "maxTokensField": "max_tokens"
             }
           },
           {
@@ -50,8 +49,7 @@
               "supportsStrictMode": false,
               "supportsDeveloperRole": false,
               "supportsReasoningEffort": false,
-              "maxTokensField": "max_tokens",
-              "parallelToolCalls": false
+              "maxTokensField": "max_tokens"
             }
           },
           {
@@ -67,8 +65,7 @@
               "supportsStrictMode": false,
               "supportsDeveloperRole": false,
               "supportsReasoningEffort": false,
-              "maxTokensField": "max_tokens",
-              "parallelToolCalls": false
+              "maxTokensField": "max_tokens"
             }
           }
         ]
