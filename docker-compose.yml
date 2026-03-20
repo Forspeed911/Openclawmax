@@ -1,5 +1,5 @@
 # OpenClawMax — Docker Compose
-# Вариант: нативный GigaChat плагин + Max Channel
+# Вариант: gpt2giga прокси + Max Channel
 #
 # Использование:
 #   cp .env.example .env
@@ -7,11 +7,31 @@
 #   docker compose up -d
 
 services:
+  # --- gpt2giga: OpenAI → GigaChat proxy (OAuth внутри) ---
+  gpt2giga:
+    image: python:3.12-slim
+    container_name: openclawmax-gpt2giga
+    restart: unless-stopped
+    command: >
+      sh -c "pip install --quiet gpt2giga &&
+             gpt2giga
+               --gigachat.credentials $GIGACHAT_CREDS
+               --gigachat.scope ${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
+               --gigachat.verify-ssl-certs false
+               --proxy.port 8443
+               --proxy.pass-model true"
+    environment:
+      - GIGACHAT_CREDS=${GIGACHAT_AUTH_KEY}
+      - GIGACHAT_SCOPE=${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
+    networks:
+      - openclawmax
+
+  # --- OpenClaw gateway ---
   openclaw:
     build:
       context: ./openclaw-src
       args:
-        OPENCLAW_EXTENSIONS: "gigachat max"
+        OPENCLAW_EXTENSIONS: "max"
     image: openclawmax:latest
     container_name: openclawmax
     restart: unless-stopped
@@ -22,10 +42,6 @@ services:
              exec node openclaw.mjs gateway --allow-unconfigured --bind lan"
     environment:
       - OPENCLAW_CONFIG_PATH=/tmp/config.json
-      # --- GigaChat (нативный плагин) ---
-      - GIGACHAT_AUTH_KEY=${GIGACHAT_AUTH_KEY}
-      - GIGACHAT_SCOPE=${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
-      - NODE_TLS_REJECT_UNAUTHORIZED=0
       # --- Max Messenger ---
       - MAX_BOT_TOKEN=${MAX_BOT_TOKEN}
       # --- Опционально: Telegram ---
@@ -37,6 +53,8 @@ services:
     volumes:
       - openclaw-data:/data
       - ./config:/app/config-source:ro
+    depends_on:
+      - gpt2giga
     networks:
       - openclawmax
 
