@@ -10,7 +10,7 @@
   "models": {
     "providers": {
       "gigachat": {
-        "baseUrl": "http://gpt2giga:8443",
+        "baseUrl": "http://gpt2giga:8090",
         "apiKey": "not-needed",
         "api": "openai-completions",
         "authHeader": false,

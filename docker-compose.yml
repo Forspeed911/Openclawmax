@@ -12,17 +12,14 @@ services:
     image: python:3.12-slim
     container_name: openclawmax-gpt2giga
     restart: unless-stopped
-    command: >
-      sh -c "pip install --quiet gpt2giga &&
-             gpt2giga
-               --gigachat.credentials $GIGACHAT_CREDS
-               --gigachat.scope ${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
-               --gigachat.verify-ssl-certs false
-               --proxy.port 8443
-               --proxy.pass-model true"
+    command: sh -c "pip install --quiet gpt2giga && gpt2giga"
     environment:
-      - GIGACHAT_CREDS=${GIGACHAT_AUTH_KEY}
+      - GIGACHAT_CREDENTIALS=${GIGACHAT_AUTH_KEY}
       - GIGACHAT_SCOPE=${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
+      - GIGACHAT_VERIFY_SSL_CERTS=False
+      - GPT2GIGA_HOST=0.0.0.0
+      - GPT2GIGA_PORT=8090
+      - GPT2GIGA_PASS_MODEL=True
     networks:
       - openclawmax
 
