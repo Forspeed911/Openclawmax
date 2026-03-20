@@ -36,7 +36,7 @@ services:
       - openclaw-data:/data
       - ./extensions/gigachat:/app/extensions/gigachat:ro
       - ./extensions/max:/app/extensions/max:ro
-      - ./config/openclaw.config.json:/app/config.json:ro
+      - ./config/openclaw.config.json:/app/config.json
     networks:
       - openclawmax
 
