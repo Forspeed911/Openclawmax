@@ -34,12 +34,13 @@ services:
       - openclawmax
 
   # --- OpenClaw gateway ---
-  # Собирается из openclaw-src с расширениями max + gigachat + telegram
+  # Собирается из openclaw-src с каналами max + telegram
+  # GigaChat провайдер — через конфиг (gpt2giga прокси), не плагин
   openclaw:
     build:
       context: ./openclaw-src
       args:
-        OPENCLAW_EXTENSIONS: "max gigachat telegram"
+        OPENCLAW_EXTENSIONS: "max telegram"
     image: openclawmax:latest
     container_name: openclawmax
     restart: unless-stopped
