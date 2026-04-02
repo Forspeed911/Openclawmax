@@ -1,53 +1,16 @@
 # OpenClawMax
 
-OpenClaw, адаптированный для российского рынка: мессенджер Max (VK) + GigaChat (Sber).
-
-## Что это
-
-SaaS-платформа на базе [OpenClaw](https://github.com/openclaw/openclaw) с двумя режимами:
-
-1. **Hosted SaaS** — мы разворачиваем и управляем всей инфраструктурой
-2. **Web Installer** — автоматическая установка на серверы клиента через веб-визард
-
-## Ключевые интеграции
-
-| Интеграция | Статус | Описание |
-|-----------|--------|----------|
-| Max (VK) | 🔴 В разработке | Channel Plugin для мессенджера Max — национального мессенджера РФ (70M+ юзеров) |
-| GigaChat (Sber) | 🔴 В разработке | LLM Provider Plugin — OAuth2, chat, function calling, embeddings |
-| Web Installer | 🔴 Планируется | Wizard: выбор → ввод ключей → SSH/API → автодеплой |
-| Hosted SaaS | 🔴 Планируется | Multi-tenant, Docker, панель управления, биллинг |
-
-## Архитектура
-
-Подробная документация: [docs/architecture.md](docs/architecture.md)
-
-### Структура плагинов
-
-```
-extensions/
-├── max/                  # Channel Plugin — мессенджер Max (VK)
-│   ├── src/
-│   │   ├── channel.ts         # Основной ChannelPlugin
-│   │   ├── max-api.ts         # HTTP-клиент Max Bot API
-│   │   ├── inbound-handler.ts # Webhook — входящие сообщения
-│   │   ├── outbound-adapter.ts# Отправка сообщений
-│   │   └── normalize.ts       # Нормализация Max → OpenClaw
-│   ├── openclaw.plugin.json
-│   └── package.json
-│
-└── gigachat/             # Provider Plugin — GigaChat (Sber)
-    ├── src/
-    │   ├── auth.ts            # OAuth2 (client_id:client_secret → token)
-    │   ├── catalog.ts         # Модели: GigaChat, GigaChat-Plus, GigaChat-Pro
-    │   └── stream-wrapper.ts  # SSE стриминг
-    ├── openclaw.plugin.json
-    └── package.json
-```
+AI-бот на базе [OpenClaw](https://github.com/openclaw/openclaw) для российского рынка: **GigaChat** (Sber) + **Max Messenger** (VK) + **Telegram**.
 
 ## Quick Start
 
-### Вариант 1: Скрипт установки (рекомендуется)
+### Скрипт установки (рекомендуется)
+
+```bash
+curl -sSL https://raw.githubusercontent.com/Forspeed911/Openclawmax/main/scripts/install.sh | bash
+```
+
+Или вручную:
 
 ```bash
 git clone https://github.com/Forspeed911/Openclawmax.git
@@ -55,52 +18,77 @@ cd Openclawmax
 bash scripts/install.sh
 ```
 
-### Вариант 2: Вручную
+Установщик проведёт через 4 шага:
+1. **Выбор LLM** → GigaChat
+2. **Выбор модели** → GigaChat-2 / Pro / Max
+3. **Ввод реквизитов** → AUTH_KEY (Base64) или Client ID + Secret
+4. **Выбор мессенджера** → Max / Telegram / оба → ввод токена бота
+
+### Вручную (без скрипта)
 
 ```bash
 git clone https://github.com/Forspeed911/Openclawmax.git
 cd Openclawmax
 cp .env.example .env
-# Заполнить .env: GIGACHAT_CREDENTIALS, MAX_BOT_TOKEN
-
-# Нативный GigaChat плагин:
+# Заполнить .env: GIGACHAT_AUTH_KEY, MAX_BOT_TOKEN и/или TELEGRAM_BOT_TOKEN
+docker compose build
 docker compose up -d
-
-# Или через gpt2giga proxy (быстрый старт):
-docker compose -f docker-compose.gpt2giga.yml up -d
 ```
 
-### Два варианта GigaChat-интеграции
+## Архитектура
 
-| | Нативный плагин | gpt2giga proxy |
-|--|-----------------|----------------|
-| Compose файл | `docker-compose.yml` | `docker-compose.gpt2giga.yml` |
-| Latency | Минимальная (1 hop) | +1 hop через proxy |
-| Зависимости | TypeScript only | +Python-сервис |
-| Edge cases | Покрываем сами | Покрыты Сбером |
-| Для кого | Продакшн | Быстрый старт |
+```
+┌───────────┐     ┌──────────────┐     ┌──────────────┐
+│ Max / TG  │────▶│   OpenClaw   │────▶│  gpt2giga    │────▶ GigaChat API
+│ (каналы)  │◀────│  (gateway)   │◀────│  (proxy)     │◀──── (Sber OAuth2)
+└───────────┘     └──────────────┘     └──────────────┘
+                        │
+                  ┌─────┴─────┐
+                  │   Caddy   │  (SSL / reverse proxy)
+                  └───────────┘
+```
 
-## Стек
+- **OpenClaw** — AI-платформа с плагинами для каналов и LLM-провайдеров
+- **gpt2giga** — [прокси от Сбера](https://github.com/ai-forever/gpt2giga), транслирует OpenAI API → GigaChat API (OAuth2 внутри)
+- **Max/Telegram** — стоковые плагины OpenClaw (long-polling, медиа, клавиатуры)
+- **Caddy** — reverse proxy + авто-SSL (Let's Encrypt)
 
-- **Плагины**: TypeScript, OpenClaw Plugin SDK, pnpm
-- **SaaS Backend**: NestJS, PostgreSQL, Redis
-- **SaaS Frontend**: React, Tailwind
-- **Деплой**: Docker, Docker Compose
-- **GigaChat alt**: [gpt2giga](https://github.com/ai-forever/gpt2giga) — официальный proxy от Сбера
+## Модели GigaChat
 
-## Этапы
+| Модель | Контекст | Ввод | Описание |
+|--------|----------|------|----------|
+| GigaChat-2 | 128K | текст | Lite — бесплатно |
+| GigaChat-2-Pro | 128K | текст, картинки | Pro — с vision |
+| GigaChat-2-Max | 128K | текст, картинки, аудио | Max — полный функционал |
 
-- **Phase 1** — Плагины (GigaChat + Max) → MVP ← текущий этап
-- **Phase 2** — Web Installer (wizard + SSH-деплоер)
-- **Phase 3** — Hosted SaaS (multi-tenant + биллинг)
+## Переменные окружения
+
+| Переменная | Обязательная | Описание |
+|-----------|:---:|----------|
+| `GIGACHAT_AUTH_KEY` | ✓ | Base64(client_id:client_secret) — [developers.sber.ru](https://developers.sber.ru) |
+| `GIGACHAT_SCOPE` | | `GIGACHAT_API_PERS` (по умолчанию) / `B2B` / `CORP` |
+| `MAX_BOT_TOKEN` | * | Токен бота Max — [dev.max.ru](https://dev.max.ru) |
+| `TELEGRAM_BOT_TOKEN` | * | Токен бота Telegram — @BotFather |
+| `OPENCLAW_PORT` | | Порт (по умолчанию 3000) |
+| `DOMAIN` | | Домен для Caddy SSL |
+
+\* Нужен хотя бы один мессенджер.
+
+## Управление
+
+```bash
+docker compose logs -f        # логи
+docker compose restart         # перезапуск
+docker compose down            # остановка
+docker compose up -d --build   # пересборка
+```
 
 ## Ссылки
 
-- [OpenClaw](https://github.com/openclaw/openclaw) — основной проект (310k+ stars)
-- [Max для разработчиков](https://dev.max.ru/) — API мессенджера Max
+- [OpenClaw](https://github.com/openclaw/openclaw) — основной проект
+- [Max API](https://dev.max.ru/) — документация Max
 - [GigaChat API](https://developers.sber.ru/docs/ru/gigachat/overview) — документация GigaChat
-- [gpt2giga](https://github.com/ai-forever/gpt2giga) — OpenAI→GigaChat proxy от Сбера
-- [gigachat-openclaw](https://github.com/SoapMaker101/gigachat-openclaw) — community proxy (reference)
+- [gpt2giga](https://github.com/ai-forever/gpt2giga) — OpenAI→GigaChat proxy
 
 ## Лицензия
 
