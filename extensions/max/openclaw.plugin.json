@@ -1,9 +1,0 @@
-{
-  "id": "max",
-  "channels": ["max"],
-  "configSchema": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {}
-  }
-}
