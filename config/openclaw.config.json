@@ -1,24 +1,24 @@
 {
   "$schema": "https://openclaw.ai/config-schema.json",
+  "_comment": "OpenClawMax — GigaChat через gpt2giga прокси + Max/Telegram",
 
   "agents": {
     "defaults": {
       "model": "gigachat/GigaChat-2-Max",
       "contextTokens": 32000,
       "thinkingDefault": "off",
-      "compaction": {
-        "mode": "default"
-      }
+      "compaction": { "mode": "default" }
     }
   },
 
   "models": {
+    "default": "GigaChat-2-Max",
     "providers": {
       "gigachat": {
-        "baseUrl": "http://gpt2giga:8090",
-        "apiKey": "not-needed",
+        "baseUrl": "http://gpt2giga:8090/v1",
         "api": "openai-completions",
-        "authHeader": false,
+        "apiKey": "gpt2giga-local",
+        "_comment": "gpt2giga прокси транслирует OpenAI → GigaChat API (OAuth внутри)",
         "models": [
           {
             "id": "GigaChat-2-Max",
@@ -74,12 +74,8 @@
   },
 
   "channels": {
-    "max": {
-      "enabled": true
-    },
-    "telegram": {
-      "enabled": false
-    }
+    "max": { "enabled": true },
+    "telegram": { "enabled": true }
   },
 
   "gateway": {

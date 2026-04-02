@@ -1,34 +1,45 @@
 # OpenClawMax — Docker Compose
-# Вариант: gpt2giga прокси + Max Channel
+# OpenClaw + GigaChat + Max/Telegram
 #
-# Использование:
-#   cp .env.example .env
-#   # заполнить .env
+# Быстрый старт:
+#   bash scripts/install.sh
+# Или вручную:
+#   cp .env.example .env && заполнить .env
 #   docker compose up -d
 
 services:
-  # --- gpt2giga: OpenAI → GigaChat proxy (OAuth внутри) ---
+  # --- gpt2giga: OpenAI-совместимый прокси для GigaChat ---
+  # Берёт на себя OAuth2 авторизацию Sber, выставляет OpenAI API
   gpt2giga:
     image: python:3.12-slim
     container_name: openclawmax-gpt2giga
     restart: unless-stopped
-    command: sh -c "pip install --quiet gpt2giga && gpt2giga"
+    command: >
+      sh -c "pip install --no-cache-dir --quiet gpt2giga &&
+             gpt2giga
+             --proxy.port 8090
+             --proxy.host 0.0.0.0
+             --proxy.pass-model true"
     environment:
       - GIGACHAT_CREDENTIALS=${GIGACHAT_AUTH_KEY}
       - GIGACHAT_SCOPE=${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
       - GIGACHAT_VERIFY_SSL_CERTS=False
-      - GPT2GIGA_HOST=0.0.0.0
-      - GPT2GIGA_PORT=8090
-      - GPT2GIGA_PASS_MODEL=True
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8090/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     networks:
       - openclawmax
 
   # --- OpenClaw gateway ---
+  # Собирается из openclaw-src с расширениями max + gigachat + telegram
   openclaw:
     build:
       context: ./openclaw-src
       args:
-        OPENCLAW_EXTENSIONS: "max"
+        OPENCLAW_EXTENSIONS: "max gigachat telegram"
     image: openclawmax:latest
     container_name: openclawmax
     restart: unless-stopped
@@ -38,20 +49,24 @@ services:
       sh -c "cp /app/config-source/openclaw.config.json /tmp/config.json &&
              exec node openclaw.mjs gateway --allow-unconfigured --bind lan"
     environment:
-      - OPENCLAW_CONFIG_PATH=/tmp/config.json
+      # --- GigaChat (через gpt2giga прокси) ---
+      - GIGACHAT_AUTH_KEY=${GIGACHAT_AUTH_KEY}
+      - GIGACHAT_SCOPE=${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
       # --- Max Messenger ---
-      - MAX_BOT_TOKEN=${MAX_BOT_TOKEN}
-      # --- Опционально: Telegram ---
+      - MAX_BOT_TOKEN=${MAX_BOT_TOKEN:-}
+      # --- Telegram ---
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
-      # --- Webhook ---
+      # --- Webhook (production) ---
       - WEBHOOK_BASE_URL=${WEBHOOK_BASE_URL:-}
-      # --- Данные ---
+      # --- System ---
+      - OPENCLAW_CONFIG_PATH=/tmp/config.json
       - DATA_DIR=/data
     volumes:
       - openclaw-data:/data
       - ./config:/app/config-source:ro
     depends_on:
-      - gpt2giga
+      gpt2giga:
+        condition: service_healthy
     networks:
       - openclawmax
 
