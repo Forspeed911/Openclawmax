@@ -15,21 +15,22 @@ services:
     container_name: openclawmax-gpt2giga
     restart: unless-stopped
     command: >
-      sh -c "pip install --no-cache-dir --quiet gpt2giga &&
-             gpt2giga
-             --proxy.port 8090
-             --proxy.host 0.0.0.0
-             --proxy.pass-model true"
+      sh -c "apt-get update -qq && apt-get install -y -qq curl > /dev/null 2>&1;
+             pip install --no-cache-dir --quiet gpt2giga &&
+             gpt2giga"
     environment:
       - GIGACHAT_CREDENTIALS=${GIGACHAT_AUTH_KEY}
       - GIGACHAT_SCOPE=${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
       - GIGACHAT_VERIFY_SSL_CERTS=False
+      - GPT2GIGA_HOST=0.0.0.0
+      - GPT2GIGA_PORT=8090
+      - GPT2GIGA_PASS_MODEL=True
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:8090/health"]
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8090/health"]
       interval: 15s
       timeout: 5s
-      retries: 5
-      start_period: 40s
+      retries: 10
+      start_period: 60s
     networks:
       - openclawmax
 
