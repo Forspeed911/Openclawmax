@@ -168,6 +168,17 @@ fi
 cd "$INSTALL_DIR"
 log "Репозиторий: $INSTALL_DIR"
 
+# Клонируем / обновляем исходники OpenClaw
+OPENCLAW_REPO="https://github.com/openclaw/openclaw.git"
+if [ -d "openclaw-src" ]; then
+    info "openclaw-src уже существует, обновляю..."
+    cd openclaw-src && git pull origin main && cd ..
+else
+    info "Клонирую OpenClaw (исходники для Docker-сборки)..."
+    git clone --depth 1 "$OPENCLAW_REPO" openclaw-src
+fi
+log "OpenClaw исходники: $INSTALL_DIR/openclaw-src"
+
 # Создаём .env если нет
 if [ ! -f .env ]; then
     cp .env.example .env
