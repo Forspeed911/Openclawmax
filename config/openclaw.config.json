@@ -1,6 +1,5 @@
 {
   "$schema": "https://openclaw.ai/config-schema.json",
-  "_comment": "OpenClawMax — GigaChat через gpt2giga прокси + Max/Telegram",
 
   "agents": {
     "defaults": {
@@ -12,13 +11,11 @@
   },
 
   "models": {
-    "default": "GigaChat-2-Max",
     "providers": {
       "gigachat": {
         "baseUrl": "http://gpt2giga:8090/v1",
         "api": "openai-completions",
         "apiKey": "gpt2giga-local",
-        "_comment": "gpt2giga прокси транслирует OpenAI → GigaChat API (OAuth внутри)",
         "models": [
           {
             "id": "GigaChat-2-Max",
