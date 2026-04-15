@@ -71,7 +71,6 @@
   },
 
   "channels": {
-    "max": { "enabled": true },
     "telegram": { "enabled": true }
   },
 
