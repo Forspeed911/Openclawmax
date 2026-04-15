@@ -179,6 +179,13 @@ else
 fi
 log "OpenClaw исходники: $INSTALL_DIR/openclaw-src"
 
+# Копируем кастомные расширения (Max и др.) в openclaw-src
+if [ -d "extensions" ]; then
+    info "Копирую кастомные расширения в openclaw-src..."
+    cp -r extensions/* openclaw-src/extensions/
+    log "Расширения скопированы"
+fi
+
 # Создаём .env если нет
 if [ ! -f .env ]; then
     cp .env.example .env
