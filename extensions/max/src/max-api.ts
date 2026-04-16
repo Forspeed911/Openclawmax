@@ -147,7 +147,7 @@ export class MaxBotApi {
     }
 
     const headers: Record<string, string> = {
-      Authorization: `access_token ${this.token}`,
+      Authorization: this.token,
     };
 
     const init: RequestInit = { method, headers };
