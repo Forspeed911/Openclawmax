@@ -405,6 +405,11 @@ START="${START:-y}"
 
 if [ "$START" = "y" ]; then
     header "Сборка Docker-образа"
+
+    # Очистка старых образов и кеша перед сборкой
+    info "Очищаю старые Docker-образы и кеш..."
+    docker system prune -f --volumes 2>/dev/null || true
+
     info "Это может занять 3-10 минут при первой сборке..."
     echo ""
 
