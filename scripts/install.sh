@@ -3,7 +3,7 @@
 # OpenClawMax — Интерактивный установщик
 # ============================================
 # Запуск:
-#   curl -sSL https://raw.githubusercontent.com/user/Openclawmax/main/scripts/install.sh | bash
+#   curl -sSL https://raw.githubusercontent.com/Forspeed911/Openclawmax/main/scripts/install.sh -o install.sh && bash install.sh
 #   или: bash scripts/install.sh
 
 set -euo pipefail

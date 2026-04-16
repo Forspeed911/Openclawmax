@@ -7,7 +7,7 @@ AI-бот на базе [OpenClaw](https://github.com/openclaw/openclaw) для 
 ### Скрипт установки (рекомендуется)
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/Forspeed911/Openclawmax/main/scripts/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/Forspeed911/Openclawmax/main/scripts/install.sh -o install.sh && bash install.sh
 ```
 
 Или вручную:
